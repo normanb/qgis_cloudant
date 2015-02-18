@@ -1,0 +1,22 @@
+# This file contains metadata for your plugin. Beginning
+# with version 1.8 this is the preferred way to supply information about a
+# plugin. The current method of embedding metadata in __init__.py will
+# be supported until version 2.0
+
+# This file should be included when you package your plugin.
+
+[general]
+name=Cloudant Client
+homepage=https://www.cloudant.com
+repository=https://github.com/normanb/qgis_cloudant
+tracker=https://github.com/normanb/qgis_cloudant/issues
+description=Client for Cloudant Geo
+about=Client for Cloudant Geo
+category=Web
+version=0.0.1
+qgisMinimumVersion=2.0
+experimental=False
+class_name=CloudantClient
+website=https://www.cloudant.com
+author=Norman Barker
+email=norman@cloudant.com
