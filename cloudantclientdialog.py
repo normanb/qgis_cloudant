@@ -23,6 +23,7 @@
 from PyQt4 import QtCore, QtGui
 from ui_cloudantclient import Ui_CloudantClient
 from qgis.core import *
+from osgeo import gdal
 
 import string
 import random
@@ -63,8 +64,28 @@ class CloudantClientDialog(QtGui.QDialog):
 
 		self.check_url(self.ui.txtUrl.text().strip())
 
+		# configure proxy settings
+		self.configure_proxy()
+
 	def init_variables(self):
 		self.bbox = ""
+
+	def configure_proxy(self):
+		proxyEnabled = self.settings.value("proxy/proxyEnabled", "")
+		proxyHost = self.settings.value("proxy/proxyHost", "")
+		proxyPort = self.settings.value("proxy/proxyPort", "")
+		proxyUser = self.settings.value("proxy/proxyUser", "")
+		proxyPassword = self.settings.value("proxy/proxyPassword", "")
+		
+		if proxyEnabled:
+			#host
+			if proxyHost is not None and proxyPort is not None:
+				gdal.SetConfigOption('GDAL_HTTP_PROXY', str(proxyHost) + ':' + str(proxyPort))
+			elif proxyHost is not None:
+				gdal.SetConfigOption('GDAL_HTTP_PROXY', proxyHost)
+			#user
+			if proxyUser is None and proxyPassword is None:
+				gdal.SetConfigOption('GDAL_HTTP_PROXYUSERPWD', '%s:%s' % (proxyUser, proxyPassword))
 
 	# Process GetFeature
 	def getFeature(self):
@@ -107,15 +128,18 @@ class CloudantClientDialog(QtGui.QDialog):
 
 	def create_layer(self, url):
 		dbname = url.split("/")[-1]
+		if (dbname == "_all_docs"):
+			dbname = url.split("/")[-2]
+
 		if self.ui.chkAuthentication.isChecked():
 			usr = self.ui.txtUsername.text().strip()
 			pswd = self.ui.txtPassword.text().strip()
 			# split on either http:// or https://
 			if len(usr) > 0 and len(pswd) > 0:
 				if url.startswith('http://'):
-					url = 'http://%s:%s@%s' %(usr, pswd, url[7:])
+					url = 'http://%s:%s@%s' % (usr, pswd, url[7:])
 				elif url.startswith('https://'):
-					url = 'http://%s:%s@%s' %(usr, pswd, url[8:])
+					url = 'https://%s:%s@%s' % (usr, pswd, url[8:])
 
 		vlayer = QgsVectorLayer("cloudant:" + url, dbname, "ogr")
 		if not vlayer.isValid():
